@@ -1,0 +1,32 @@
+{
+    "$schema": "https://zeabur.com/schema.json",
+    "build": {
+        "client": {
+            "type": "static",
+            "root": "client",
+            "build_command": "npm install && npm run build",
+            "output": "dist"
+        },
+        "server": {
+            "type": "nodejs",
+            "root": "server",
+            "build_command": "npm install"
+        }
+    },
+    "services": [
+        {
+            "name": "web",
+            "type": "static",
+            "build": "client"
+        },
+        {
+            "name": "api",
+            "type": "nodejs",
+            "build": "server",
+            "start_command": "npm start",
+            "env": {
+                "NODE_ENV": "production"
+            }
+        }
+    ]
+}
