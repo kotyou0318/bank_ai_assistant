@@ -52,7 +52,7 @@ cd client && npm run dev
 
 ### 4. 访问应用
 
-打开浏览器访问 [http://localhost:5173](http://localhost:5173)
+打开浏览器访问 [https://doumiao.zeabur.app/](https://doumiao.zeabur.app/)
 
 ## 📦 部署到 Zeabur
 
