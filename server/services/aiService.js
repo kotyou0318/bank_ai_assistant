@@ -24,6 +24,17 @@ if (hasOpenAIKey) {
     console.log('⚠️ OPENAI_API_KEY not set, using local knowledge base only')
 }
 
+// Greeting patterns and responses
+const greetings = {
+    patterns: ['你好', '您好', '嗨', 'hi', 'hello', '早上好', '下午好', '晚上好', '在吗', '在不在'],
+    response: '👋 您好！欢迎使用智能银行客服！\n\n我可以帮您解答以下问题：\n📋 账户服务（开户、销户、密码）\n💸 转账汇款（转账、限额、手续费）\n🏠 贷款服务（利率、房贷）\n💳 信用卡（申请、提额）\n💰 理财服务（理财产品、存款）\n📱 电子银行（手机银行）\n\n请问有什么可以帮您的？'
+}
+
+const helpPatterns = {
+    patterns: ['帮助', '功能', '能做什么', '有什么功能', '怎么用', '问题', '咨询'],
+    response: '🏦 **智能银行客服助手**\n\n我可以帮您解答以下问题：\n\n1️⃣ **账户服务** - 开户、销户、修改密码\n2️⃣ **转账汇款** - 转账方式、限额、手续费\n3️⃣ **贷款服务** - 贷款利率、房贷办理\n4️⃣ **信用卡** - 申请信用卡、提升额度\n5️⃣ **理财服务** - 理财产品、定期存款\n6️⃣ **电子银行** - 手机银行开通\n7️⃣ **安全提醒** - 防范金融诈骗\n\n💡 您可以直接输入关键词，如"开户"、"转账"、"贷款"等'
+}
+
 const SYSTEM_PROMPT = `你是一位专业、友好的智能银行客服助手。你的职责是帮助客户解答银行业务相关问题。
 
 ## 你的特点：
@@ -46,7 +57,23 @@ ${JSON.stringify(bankKnowledge, null, 2)}
 请根据以上要求，回答客户的问题。`
 
 export async function getAIResponse(message, history = []) {
-    // First, try to find answer in local knowledge base
+    const lowerMessage = message.toLowerCase()
+
+    // Check for greetings first
+    for (const pattern of greetings.patterns) {
+        if (lowerMessage.includes(pattern)) {
+            return greetings.response
+        }
+    }
+
+    // Check for help requests
+    for (const pattern of helpPatterns.patterns) {
+        if (lowerMessage.includes(pattern)) {
+            return helpPatterns.response
+        }
+    }
+
+    // Try to find answer in local knowledge base
     const fallbackResponse = findFallbackAnswer(message)
 
     // If no OpenAI API key, use local knowledge base only
@@ -54,7 +81,7 @@ export async function getAIResponse(message, history = []) {
         if (fallbackResponse) {
             return fallbackResponse
         }
-        return "😊 感谢您的咨询！目前AI助手正在升级中，暂时无法回答您的问题。\n\n您可以：\n1. 尝试询问常见问题（如：开户、转账、贷款、信用卡等）\n2. 拨打客服热线 95588 获取人工服务\n3. 前往就近网点咨询"
+        return getDefaultResponse()
     }
 
     try {
@@ -76,14 +103,14 @@ export async function getAIResponse(message, history = []) {
 
         return completion.choices[0].message.content
     } catch (error) {
-        console.error('OpenAI API Error:', error)
+        console.error('OpenAI API Error:', error.message || error)
 
         // Fallback to knowledge base for common questions
         if (fallbackResponse) {
             return fallbackResponse
         }
 
-        return "😊 抱歉，AI助手暂时遇到了一些问题。\n\n您可以：\n1. 稍后再试\n2. 拨打客服热线 95588\n3. 前往就近网点咨询"
+        return getDefaultResponse()
     }
 }
 
@@ -101,4 +128,22 @@ function findFallbackAnswer(message) {
     }
 
     return null
+}
+
+function getDefaultResponse() {
+    return `🤔 抱歉，我暂时无法理解您的问题。
+
+**您可以尝试以下方式：**
+
+1️⃣ 输入关键词查询，例如：
+   • 输入"开户"了解开户流程
+   • 输入"转账"了解转账方式
+   • 输入"贷款"了解贷款信息
+   • 输入"信用卡"了解信用卡服务
+
+2️⃣ 联系人工客服：
+   📞 客服热线：95588
+   🏦 前往就近网点咨询
+
+💡 输入"帮助"查看更多功能`
 }

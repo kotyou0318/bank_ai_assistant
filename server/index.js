@@ -27,13 +27,18 @@ app.get('/api/health', (req, res) => {
 
 // Serve static files in production
 if (process.env.NODE_ENV === 'production') {
-    app.use(express.static(path.join(__dirname, 'public')))
+    const staticPath = path.join(__dirname, 'public')
+    console.log(`📁 Static files path: ${staticPath}`)
+
+    app.use(express.static(staticPath))
 
     app.get('*', (req, res) => {
-        res.sendFile(path.join(__dirname, 'public/index.html'))
+        res.sendFile(path.join(staticPath, 'index.html'))
     })
 }
 
-app.listen(PORT, () => {
+app.listen(PORT, '0.0.0.0', () => {
     console.log(`🏦 Bank Customer Service API running on port ${PORT}`)
+    console.log(`🌍 Environment: ${process.env.NODE_ENV || 'development'}`)
 })
+
