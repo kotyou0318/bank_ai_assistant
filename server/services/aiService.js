@@ -10,10 +10,19 @@ const __dirname = path.dirname(__filename)
 const knowledgePath = path.join(__dirname, '../data/bankKnowledge.json')
 const bankKnowledge = JSON.parse(readFileSync(knowledgePath, 'utf-8'))
 
-// Initialize OpenAI client
-const openai = new OpenAI({
-    apiKey: process.env.OPENAI_API_KEY,
-})
+// Check if OpenAI API key is available
+const hasOpenAIKey = !!process.env.OPENAI_API_KEY
+
+// Initialize OpenAI client only if API key is available
+let openai = null
+if (hasOpenAIKey) {
+    openai = new OpenAI({
+        apiKey: process.env.OPENAI_API_KEY,
+    })
+    console.log('✅ OpenAI API initialized')
+} else {
+    console.log('⚠️ OPENAI_API_KEY not set, using local knowledge base only')
+}
 
 const SYSTEM_PROMPT = `你是一位专业、友好的智能银行客服助手。你的职责是帮助客户解答银行业务相关问题。
 
@@ -37,6 +46,17 @@ ${JSON.stringify(bankKnowledge, null, 2)}
 请根据以上要求，回答客户的问题。`
 
 export async function getAIResponse(message, history = []) {
+    // First, try to find answer in local knowledge base
+    const fallbackResponse = findFallbackAnswer(message)
+
+    // If no OpenAI API key, use local knowledge base only
+    if (!openai) {
+        if (fallbackResponse) {
+            return fallbackResponse
+        }
+        return "😊 感谢您的咨询！目前AI助手正在升级中，暂时无法回答您的问题。\n\n您可以：\n1. 尝试询问常见问题（如：开户、转账、贷款、信用卡等）\n2. 拨打客服热线 95588 获取人工服务\n3. 前往就近网点咨询"
+    }
+
     try {
         const messages = [
             { role: 'system', content: SYSTEM_PROMPT },
@@ -59,12 +79,11 @@ export async function getAIResponse(message, history = []) {
         console.error('OpenAI API Error:', error)
 
         // Fallback to knowledge base for common questions
-        const fallbackResponse = findFallbackAnswer(message)
         if (fallbackResponse) {
             return fallbackResponse
         }
 
-        throw error
+        return "😊 抱歉，AI助手暂时遇到了一些问题。\n\n您可以：\n1. 稍后再试\n2. 拨打客服热线 95588\n3. 前往就近网点咨询"
     }
 }
 
