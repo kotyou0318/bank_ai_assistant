@@ -1,12 +1,5 @@
 {
-    "$schema": "https://zeabur.com/schema.json",
     "build": {
-        "type": "nodejs",
-        "build_command": "npm install && cd client && npm install && npm run build && cd ../server && npm install",
-        "output": "client/dist"
-    },
-    "start_command": "cd server && npm start",
-    "env": {
-        "NODE_ENV": "production"
+        "type": "dockerfile"
     }
 }
