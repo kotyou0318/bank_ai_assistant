@@ -17,6 +17,9 @@ FROM node:20-alpine
 
 WORKDIR /app
 
+# Set production environment
+ENV NODE_ENV=production
+
 # Copy server files
 COPY server ./server
 WORKDIR /app/server
@@ -26,7 +29,7 @@ RUN npm install --production
 COPY --from=builder /app/client/dist ./public
 
 # Expose port
-EXPOSE 3000
+EXPOSE 8080
 
 # Start server
 CMD ["npm", "start"]
